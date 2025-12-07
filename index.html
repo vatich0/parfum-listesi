@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parfüm Fiyat Listesi</title>
+    <style>
+        @page { size: A4; margin: 10mm; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 8.5pt; margin: 0; padding: 20px; background: #fff; }
+        .container { max-width: 900px; margin: auto; }
+        h1 { text-align: center; color: #2c3e50; font-size: 16pt; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #7f8c8d; font-size: 10pt; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .filter-btn { padding: 6px 12px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; border-radius: 4px; font-size: 9pt; }
+        .filter-btn.active { background: #34495e; color: white; }
+        .print-btn { position: fixed; top: 20px; right: 20px; padding: 10px 15px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #34495e; color: white; padding: 8px; text-align: left; }
+        td { padding: 5px 8px; border: 1px solid #eee; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .man { color: #2980b9; font-weight: bold; }
+        .woman { color: #c0392b; font-weight: bold; }
+        .unisex { color: #8e44ad; font-weight: bold; }
+        .price { font-weight: bold; text-align: right; }
+        .hidden { display: none; }
+        @media print { .controls, .print-btn { display: none; } body { padding: 0; } }
+    </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">📄 PDF Olarak Kaydet</button>
+
+<div class="container">
+    <h1>İSTANBUL ESANS</h1>
+    <div class="subtitle">50ml Parfüm Fiyatları | Son Güncelleme: 30.11.2025</div>
+
+    <div class="controls">
+        <button class="filter-btn active" onclick="filterData('all')">Tümü</button>
+        <button class="filter-btn" onclick="filterData('man')">👨 Erkek</button>
+        <button class="filter-btn" onclick="filterData('woman')">👩 Kadın</button>
+        <button class="filter-btn" onclick="filterData('unisex')">⚧ Unisex</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 40px;">NO</th>
+                <th>MARKA</th>
+                <th>MODEL</th>
+                <th style="width: 80px;">CİNSİ</th>
+                <th style="width: 100px; text-align: right;">FİYAT</th>
+            </tr>
+        </thead>
+        <tbody id="listBody"></tbody>
+    </table>
+</div>
+
+<script>
+    const perfumes = [
+        [1, "ABDUL SAMAD AL QURASHI", "SAFARI EXTREME", "MAN", 1100], [2, "ABDUL SAMAD AL QURASHI", "ROUH AL AOUD", "UNISEX", 1202],
+        [3, "ACQUA DI PARMA", "FICO DI AMALFI", "UNISEX", 692], [4, "ATKINSONS", "OUD SAVE THE KING", "UNISEX", 964],
+        [5, "ARMAF", "CLUB DE NUIT INTENSE", "MAN", 624], [6, "ARABIAN OUD", "AL FAREED", "MAN", 1610],
+        [7, "ATTAR COLLECTION", "HAYATI", "UNISEX", 692], [8, "AMOUAGE", "OUTLANDS AMOUAGE ESSENCE", "UNISEX", 1107],
+        [9, "AMOUAGE", "GUIDANCE", "WOMAN", 1258], [10, "AMOUAGE", "REFLECTION", "MAN", 543],
+        [11, "AZZARO", "CHROME", "MAN", 546], [12, "AZZARO", "THE MOST WANTED", "MAN", 678],
+        [13, "AZZARO", "WANTED", "MAN", 845], [14, "BYREDO", "1996 INEZ & VINOODH", "UNISEX", 754],
+        [15, "BYREDO", "BAL D'AFRIQUE", "UNISEX", 743], [16, "BY KILIAN", "ANGELS'SHARE", "UNISEX", 767],
+        [17, "BY KILIAN", "ANGELS'SHARE PARADIS", "UNISEX", 1258], [18, "BY KILIAN", "STRAIGHT TO HEAVEN", "MAN", 1022],
+        [19, "BY KILIAN", "LOVE DON'T BE SHY", "WOMAN", 990], [20, "BY KILIAN", "GOOD GIRL GONE BAD EXTREME", "WOMAN", 716],
+        [21, "BY KILIAN", "BLUE MOON GINGER DASH", "UNISEX", 770], [22, "BY KILIAN", "BLACK PHANTOM", "UNISEX", 590],
+        [23, "BY KILIAN", "ROLLING IN LOVE", "UNISEX", 862], [24, "BY KILIAN", "APPLE BRANDY ON THE ROCKS", "UNISEX", 700],
+        [25, "BOND NO 9", "NEW YORK NIGHTS", "UNISEX", 858], [26, "BOND NO 9", "LAFAYETTE STREET", "UNISEX", 934],
+        [27, "BILLIE EILISH", "EILISH", "WOMAN", 565], [28, "BVLGARI", "MAN IN BLACK", "MAN", 631],
+        [29, "BVLGARI", "LE GEMME TYGAR", "MAN", 1412], [30, "BVLGARI", "LE GEMME GYAN", "MAN", 1299],
+        [31, "BVLGARI", "AQVA POUR HOMME MARINE", "MAN", 732], [32, "BVLGARI", "AQVA POUR HOMME", "MAN", 896],
+        [33, "BURBERRY", "HER", "WOMAN", 770], [34, "BURBERRY", "GODDESS", "WOMAN", 660],
+        [35, "BURBERRY", "WEEKEND", "WOMAN", 590], [36, "BURBERRY", "HERO", "MAN", 828],
+        [37, "BURBERRY", "BURBERRY MEN", "MAN", 726], [38, "CAROLINA HERRERA", "GOOD GIRL", "WOMAN", 748],
+        [39, "CAROLINA HERRERA", "212 MEN", "MAN", 644], [40, "CAROLINA HERRERA", "212 SEXY MEN", "MAN", 648],
+        [41, "CAROLINA HERRERA", "BAD BOY", "MAN", 794], [42, "CALVIN KLEIN", "EUPHORIA", "WOMAN", 653],
+        [43, "CALVIN KLEIN", "EUPHORIA - MAN", "MAN", 603], [44, "CHANEL", "ALLURE HOMME SPORT", "MAN", 556],
+        [45, "CHANEL", "COCO MADEMOISELLE", "WOMAN", 723], [46, "CHANEL", "BLEU DE CHANEL", "MAN", 707],
+        [47, "CHANEL", "CHANCE EAU SPLENDIDE", "WOMAN", 738], [48, "CHANEL", "CHANCE", "WOMAN", 549],
+        [49, "CHANEL", "CHANEL NO 5", "WOMAN", 496], [50, "CHLOE", "NOMADE", "WOMAN", 770],
+        [51, "CHLOE", "SIGNATURE", "WOMAN", 543], [52, "CHLOE", "LOVE", "WOMAN", 609],
+        [53, "CHLOE", "LOVE STORY", "WOMAN", 709], [54, "CREED", "AVENTUS", "MAN", 990],
+        [55, "CREED", "ABSOLU AVENTUS", "MAN", 1132], [56, "CREED", "VIRGIN ISLAND WATER", "UNISEX", 540],
+        [57, "CREED", "MILL. SILVER MOUNTAIN WATER", "UNISEX", 1416], [58, "CREED", "MILLESIME IMPERIAL", "UNISEX", 743],
+        [59, "CREED", "ROYAL OUD", "UNISEX", 2358], [60, "CLIVE CHRISTIAN", "JUMP UP AND KISS HEDONISTIC", "UNISEX", 1085],
+        [61, "CLIVE CHRISTIAN", "BLONDE AMBER", "UNISEX", 1195], [62, "CLIVE CHRISTIAN", "NO.1 MEN", "MAN", 1935],
+        [63, "CLINIQUE", "HAPPY", "WOMAN", 811], [64, "DIOR", "ADDICT", "WOMAN", 593],
+        [65, "DIOR", "HOME INTENSE", "MAN", 631], [66, "DIOR", "HYPNOTIC POISON", "WOMAN", 653],
+        [67, "DIOR", "J'ADORE", "WOMAN", 590], [68, "DIOR", "SAUVAGE ELIXIR", "MAN", 1267],
+        [69, "DIOR", "SAUVAGE", "MAN", 678], [70, "DIOR", "MISS DIOR BLOOMING BOUQUET", "WOMAN", 619],
+        [71, "DIOR", "MISS DIOR", "WOMAN", 656], [72, "DIOR", "FAHRENHEIT", "MAN", 546],
+        [73, "DIOR", "PURE POISON", "WOMAN", 777], [74, "DIOR", "MISS DIOR CHERIE", "WOMAN", 658],
+        [75, "DOLCE & GABBANA", "ORANGE", "UNISEX", 694], [76, "DOLCE & GABBANA", "DEVOTION", "WOMAN", 707],
+        [77, "DOLCE & GABBANA", "THE ONE", "WOMAN", 644], [78, "DOLCE & GABBANA", "THE ONLY ONE", "WOMAN", 653],
+        [79, "DOLCE & GABBANA", "DGVIB3", "UNISEX", 704], [80, "DOLCE & GABBANA", "THE ONE FOR MEN", "MAN", 692],
+        [81, "DAVIDOFF", "COOL WATER WOMAN", "WOMAN", 658], [82, "DONNA KARAN", "BE DELICIOUS", "WOMAN", 549],
+        [83, "ESTEE LAUDER", "MODERN MUSE", "WOMAN", 757], [84, "ESTEE LAUDER", "MODERN MUSE LE ROUGE", "WOMAN", 828],
+        [85, "ESSENTIAL PARFUMS", "BOIS IMPERIAL", "MAN", 1267], [86, "ESCENTRIC MOLECULES", "MOLECULE 01 + MANDARINE", "UNISEX", 660],
+        [87, "ESCENTRIC MOLECULES", "ESCENTRIC 02", "UNISEX", 692], [88, "ESCADA", "SEXY GRAFFITI", "WOMAN", 590],
+        [89, "EX NIHILO", "FLEUR NARCOTIQUE", "UNISEX", 707], [90, "EX NIHILO", "BLUE TALISMAN", "UNISEX", 801],
+        [91, "EX NIHILIO", "THE HEDONIST", "UNISEX", 1610], [92, "FRANCK BOCLET", "COCAINE ROCK RIO", "UNISEX", 748],
+        [93, "FREDERIC MALLE", "THE NIGHT", "UNISEX", 1479], [94, "FREDERIC MALLE", "PORTRAIT OF A LADY", "WOMAN", 1220],
+        [95, "FREDERIC MALLE", "THE MOON", "UNISEX", 1277], [96, "GIVENCHY", "INSENSE ULTRAMARINE", "MAN", 619],
+        [97, "GIVENCHY", "IRRESISTIBLE", "WOMAN", 653], [98, "GIVENCHY", "GENTLEMAN RESERVE PRIVEE", "MAN", 738],
+        [99, "GIORGIO ARMANI", "ACQUA DI GIO PROFONDO", "MAN", 804], [100, "GIORGIO ARMANI", "CODE", "MAN", 707],
+        [101, "GIORGIO ARMANI", "STRONGER WITH YOU", "MAN", 817], [102, "GIORGIO ARMANI", "STRONGER WITH YOU INTENSELY", "MAN", 682],
+        [103, "GIORGIO ARMANI", "STRONGER WITH YOU ABSOLUTELY", "MAN", 647], [104, "GIORGIO ARMANI", "STRONGER WITH YOU TOBACCO", "MAN", 754],
+        [105, "GIORGIO ARMANI", "STRONGER WITH YOU OUD", "MAN", 723], [106, "GIORGIO ARMANI", "SI PASSIONE", "WOMAN", 675],
+        [107, "GIORGIO ARMANI", "SI", "WOMAN", 581], [108, "GIORGIO ARMANI", "MY WAY", "WOMAN", 682],
+        [109, "GIORGIO ARMANI", "PRIVE ROUGE MALACHITE", "UNISEX", 770], [110, "GIORGIO ARMANI", "ACQUA DI GIO ELIXIR", "MAN", 930],
+        [111, "GIORGIO ARMANI", "ACQUA DI GIO PROFUMO", "MAN", 1032], [112, "GIORGIO ARMANI", "PRIVE BLEU TURQUOISE", "UNISEX", 1168],
+        [113, "GISADA", "AMBASSADOR", "MAN", 1032], [114, "GUCCI", "FLORA GORGEOUS GARDENIA", "WOMAN", 660],
+        [115, "GUCCI", "GUCCI BLOOM", "WOMAN", 817], [116, "GUCCI", "GUILTY ELIXIR DE PARFUM", "WOMAN", 707],
+        [117, "GUCCI", "GUCCI BAMBOO", "WOMAN", 656], [118, "GUCCI", "GUILTY", "WOMAN", 726],
+        [119, "GUCCI", "RUSH", "WOMAN", 692], [120, "GUCCI", "GUILTY ELIXIR MEN", "MAN", 981],
+        [121, "GUERLAIN", "SANTA ROYAL", "UNISEX", 1740], [122, "GUERLIAN", "VANILLE PLANIFOLIA EXTRAIT 21", "UNISEX", 1678],
+        [123, "HERMES", "TERRE D'HERMES", "MAN", 817], [124, "HERMES", "UN JARDIN SUR LE NIL", "UNISEX", 770],
+        [125, "HUGO BOSS", "BOSS BOTTLED ELIXIR", "MAN", 707], [126, "HUGO BOSS", "BOSS BOTTLED", "MAN", 521],
+        [127, "HUGO BOSS", "BOSS BOTLED ABSOLUTE", "MAN", 845], [128, "INITIO", "ABSOLUTE APHRODISIAC", "UNISEX", 609],
+        [129, "INITIO", "OUD FOR GREATNESS", "UNISEX", 1085], [130, "INITIO", "REHAB", "UNISEX", 716],
+        [131, "INITIO", "MUSK THERAPY", "UNISEX", 1208], [132, "INITIO", "SIDE EFFECT", "UNISEX", 732],
+        [133, "INITIO", "ATOMIC ROSE", "UNISEX", 946], [134, "INITIO", "NARCOTIC DELIGHT", "UNISEX", 913],
+        [135, "ISSEY MIYAKE", "L'EAU D'ISSEY", "WOMAN", 590], [136, "ISSEY MIYAKE", "LE SEL D'ISSEY", "MAN", 833],
+        [137, "JEAN PAUL GAULTIER", "LE BEAU", "MAN", 700], [138, "JEAN PAUL GAULTIER", "LE BEAU PARASIDE", "MAN", 660],
+        [139, "JEAN PAUL GAULTIER", "LE MALE", "MAN", 471], [140, "JEAN PAUL GAULTIER", "LE MALE ELIXIR", "MAN", 675],
+        [141, "JEAN PAUL GAULTIER", "LE MALE LE PARFUM", "MAN", 738], [142, "JEAN PAUL GAULTIER", "ULTRA MALE", "MAN", 597],
+        [143, "JEAN PAUL GAULTIER", "SCANDAL", "WOMAN", 723], [144, "JEAN PAUL GAULTIER", "SCANDAL POUR HOMME", "MAN", 678],
+        [145, "JEAN PAUL GAULTIER", "LA BELLE PARADISE", "WOMAN", 1056], [146, "JOOP", "JOOP HOMME", "MAN", 631],
+        [147, "JO MALONE", "WOOD SAGE", "UNISEX", 540], [148, "JO MALONE", "ENGLISH PEAR", "WOMAN", 559],
+        [149, "JO MALONE", "MYRRH & TONKA", "UNISEX", 700], [150, "JIL SANDER", "SUN WOMAN", "WOMAN", 692],
+        [151, "KAYALI", "VANILLA 28", "WOMAN", 603], [152, "KAYALI", "EDEN 39", "WOMAN", 660],
+        [153, "KAYALI", "VANILLA CANDY 42", "WOMAN", 653], [154, "KAJAL", "ALMAZ", "UNISEX", 726],
+        [155, "KAYALI", "YUM MARSHMALLOW", "WOMAN", 794], [156, "KENZO", "POUR HOMME", "MAN", 549],
+        [157, "LACOSTE", "L.12.12 BLANC", "MAN", 653], [158, "LACOSTE", "RED", "MAN", 600],
+        [159, "LACOSTE", "POUR FEMME", "WOMAN", 511], [160, "LACOSTE", "ESSENTIAL", "MAN", 641],
+        [161, "LANCOME", "LA NUIT TRESOR", "WOMAN", 707], [162, "LANCOME", "LA VIE EST BELLE", "WOMAN", 628],
+        [163, "LANCOME", "TRESOR MIDNIGHT", "WOMAN", 562], [164, "LANCOME", "IDOLE", "WOMAN", 786],
+        [165, "LANCOME", "OUD BOUQUET", "UNISEX", 921], [166, "LANCOME", "MIRACLE", "WOMAN", 760],
+        [167, "LANCOME", "HYPNOSE", "WOMAN", 743], [168, "LATTAFA", "YARA", "WOMAN", 660],
+        [169, "LATTAFA", "KHAMRAH", "UNISEX", 760], [170, "LE LABO", "ANOTHER 13", "UNISEX", 2235],
+        [171, "LE LABO", "SANTAL 33", "UNISEX", 804], [172, "LOUIS VUITTON", "PASIFIC CHILL", "UNISEX", 1337],
+        [173, "LOUIS VUITTON", "ORAGE", "MAN", 1762], [174, "LOUIS VUITTON", "OMBRE NOMADE", "UNISEX", 817],
+        [175, "LOUIS VUITTON", "AFTERNOON SWIM", "UNISEX", 1053], [176, "LOUIS VUITTON", "IMAGINATION", "MAN", 1573],
+        [177, "LOUIS VUITTON", "SYMPHONY", "UNISEX", 1148], [178, "LOUIS VUITTON", "L'IMMENSITE", "MAN", 1699],
+        [179, "LOUIS VUITTON", "ATTRAPE REVES", "WOMAN", 1620], [180, "LOUIS VUITTON", "ELVES", "WOMAN", 2256],
+        [181, "LOUIS VUITTON", "METEORE", "MAN", 1270], [182, "LOUIS VUITTON", "CITY OF STARS", "UNISEX", 1236],
+        [183, "LOUIS VUITTON", "CALIFORNIA DREAMS", "UNISEX", 1644], [184, "MAISON MARGIELA", "JAZZ CLUB", "MAN", 641],
+        [185, "MFK", "BACCARAT ROUGE 540", "UNISEX", 1290], [186, "MFK", "GRAND SOIR", "UNISEX", 1179],
+        [187, "MFK", "OUD SATIN MOOD", "UNISEX", 833], [188, "MAISON CRIVELLI", "OUD MARACUJA", "UNISEX", 1510],
+        [189, "MFK", "AQUA CELESTIA", "UNISEX", 808], [190, "MANCERA", "CEDRAT BOISE", "UNISEX", 817],
+        [191, "MANCERA", "BLACK VANILLA", "UNISEX", 521], [192, "MANCERA", "RED TOBACCO", "UNISEX", 912],
+        [193, "NAUTICA", "VOYAGE", "MAN", 496], [194, "M. BARROIS", "GANYMEDE", "UNISEX", 1258],
+        [195, "M. BARROIS", "TILIA", "UNISEX", 1661], [196, "M. BARROIS", "B683", "MAN", 1038],
+        [197, "M. BARROIS", "ALDEBARAN", "UNISEX", 1848], [198, "MARC JACOBS", "DECADENCE", "WOMAN", 760],
+        [199, "MEMO", "AFRICAN LEATHER", "UNISEX", 1179], [200, "MEMO", "MARFA", "UNISEX", 666],
+        [201, "MEMO", "OCEAN LEATHER", "UNISEX", 804], [202, "MICHAEL KORS", "SUPER GORGEOUS", "WOMAN", 628],
+        [203, "MONTALE", "CHOCOLATE GREEDY", "UNISEX", 502], [204, "MONTALE", "ARABIANS TONKA", "UNISEX", 864],
+        [205, "MONTALE", "VANILLA CAKE", "UNISEX", 392], [206, "MONTALE", "HONEY AOUD", "UNISEX", 864],
+        [207, "MONTALE", "STARRY NIGHTS", "UNISEX", 738], [208, "MONTALE", "INTENSE CAFE", "UNISEX", 845],
+        [209, "NASOMATTO", "BLACK AFGANO", "UNISEX", 959], [210, "NASOMATTO", "PARDON", "MAN", 1100],
+        [211, "N. RODRIGUEZ", "FOR HER", "WOMAN", 678], [212, "NISHANE", "HACIVAT", "UNISEX", 1101],
+        [213, "NISHANE", "WULONG CHA", "UNISEX", 707], [214, "NISHANE", "NEFS", "UNISEX", 1365],
+        [215, "NISHANE", "FAN YOUR FLAMES", "UNISEX", 1069], [216, "NISHANE", "PAPILEFIKO", "UNISEX", 927],
+        [217, "NISHANE", "TERO", "UNISEX", 984], [218, "NISHANE", "KARAGÖZ", "UNISEX", 1236],
+        [219, "NISHANE", "TEMPFLUO", "UNISEX", 930], [220, "NISHANE", "FAVONIUS", "UNISEX", 1576],
+        [221, "NISHANE", "100 SILENT WAYS", "UNISEX", 1338], [222, "NISHANE", "ANI", "UNISEX", 998],
+        [223, "ORTO PARISI", "MEGAMARE", "UNISEX", 3558], [224, "ORTO PARISI", "RISVELIUM", "UNISEX", 1719],
+        [225, "ORTO PARISI", "BOCCANERA", "UNISEX", 1610], [226, "O. JAYNE", "MONTABACO INT.", "UNISEX", 1440],
+        [227, "PACO RABANNE", "INVICTUS ELIXIR", "MAN", 660], [228, "PACO RABANNE", "1 MILLION ELIXIR", "MAN", 675],
+        [229, "PACO RABANNE", "PHANTOM", "MAN", 675], [230, "PACO RABANNE", "INVICTUS", "MAN", 628],
+        [231, "PACO RABANNE", "FAME", "WOMAN", 845], [232, "PACO RABANNE", "BLACK XS", "MAN", 794],
+        [233, "P. DE MARLY", "ALTHAIR", "MAN", 1006], [234, "P. DE MARLY", "DELINA", "WOMAN", 1015],
+        [235, "P. DE MARLY", "DELINA EXCLUSIF", "WOMAN", 795], [236, "P. DE MARLY", "LAYTON EXCLUSIF", "UNISEX", 1204],
+        [237, "P. DE MARLY", "PEGASUS", "MAN", 874], [238, "P. DE MARLY", "SEDLEY", "UNISEX", 713],
+        [239, "P. DE MARLY", "VALAYA", "WOMAN", 1431], [240, "P. DE MARLY", "HALTANE", "MAN", 801],
+        [241, "P. DE MARLY", "KALAN", "UNISEX", 947], [242, "P. DE MARLY", "PEGASUS EXCLUSIF", "MAN", 845],
+        [243, "P. DE MARLY", "PERCIVAL", "UNISEX", 896], [244, "PRADA", "PARADOXE", "WOMAN", 795],
+        [245, "PRADA", "PARADOXE INTENSE", "WOMAN", 707], [246, "PRADA", "LUNA ROSSA OCEAN", "MAN", 694],
+        [247, "PROFUMUM ROMA", "ACQUA DI SALE", "UNISEX", 612], [248, "PENHALIGON'S", "HALFETI", "UNISEX", 795],
+        [249, "PENHALIGON'S", "LORD GEORGE", "MAN", 1384], [250, "PENHALIGON'S", "MR SAM", "MAN", 964],
+        [251, "ROJA DOVE", "ELYSIUM", "MAN", 1290], [252, "SHISEIDO", "ZEN", "WOMAN", 549],
+        [253, "SHISEIDO", "GINZA", "WOMAN", 862], [254, "SOSPIRO", "ERBA PURA", "UNISEX", 978],
+        [255, "SOSPIRO", "VIBRATO", "MAN", 1573], [256, "SOSPIRO", "ACCENTO", "UNISEX", 1219],
+        [257, "SOSPIRO", "II PADRINO", "UNISEX", 998], [258, "S. HUMBERT LUCAS", "GOD OF FIRE", "UNISEX", 1019],
+        [259, "SNOB", "SNOB CLASSIC", "MAN", 606], [260, "SHAIK", "CLASSIC 77", "MAN", 723],
+        [261, "T. TERENZI", "KIRKE", "UNISEX", 1053], [262, "T. TERENZI", "TELEA", "UNISEX", 990],
+        [263, "T. TERENZI", "TYL ASSOLUTO", "UNISEX", 937], [264, "T. TERENZI", "ANDROMEDA", "UNISEX", 1185],
+        [265, "TOM FORD", "BLACK ORCHID", "UNISEX", 615], [266, "TOM FORD", "LOST CHERRY", "UNISEX", 959],
+        [267, "TOM FORD", "TOBACCO VANILLA", "UNISEX", 634], [268, "TOM FORD", "OMBRE LEATHER", "UNISEX", 1053],
+        [269, "TOM FORD", "TUSCAN LEATHER", "UNISEX", 691], [270, "TOM FORD", "BITTER PEACH", "UNISEX", 855],
+        [271, "TOM FORD", "OUD WOOD", "UNISEX", 937], [272, "TOM FORD", "NOIR DE NOIR", "UNISEX", 672],
+        [273, "TOM FORD", "NOIR EXTREME", "MAN", 666], [274, "TOM FORD", "WHITE SUEDE", "WOMAN", 669],
+        [275, "TOM FORD", "FUCKING FAB.", "UNISEX", 908], [276, "TOM FORD", "SOLEIL BLANC", "UNISEX", 804],
+        [277, "TOM FORD", "PATCHOULI", "WOMAN", 546], [278, "TOM FORD", "VANILLA SEX", "UNISEX", 552],
+        [279, "T. MUGLER", "ALIEN", "WOMAN", 634], [280, "VALENTINO", "BORN ROMA", "WOMAN", 678],
+        [281, "VALENTINO", "BORN ROMA INT.", "WOMAN", 660], [282, "VALENTINO", "UOMO ROMA", "MAN", 833],
+        [283, "VAKKO", "INFINITI", "WOMAN", 1134], [284, "VERSACE", "DYLAN BLUE", "MAN", 660],
+        [285, "VERSACE", "EROS FLAME", "MAN", 486], [286, "VERSACE", "EROS", "MAN", 597],
+        [287, "VERSACE", "EROS ENERGY", "MAN", 754], [288, "VERSACE", "BRIGHT CRYSTAL", "WOMAN", 521],
+        [289, "VERSACE", "CRYSTAL NOIR", "WOMAN", 723], [290, "VERSACE", "EAU FRAICHE", "MAN", 637],
+        [291, "VERSACE", "YELLOW DIAMOND", "WOMAN", 634], [292, "VERSACE", "EROS NAJIM", "MAN", 964],
+        [293, "VERTUS", "SOLE PATCHOULI", "UNISEX", 3616], [294, "V. SECRET", "BOMBSHELL", "WOMAN", 489],
+        [295, "V. SECRET", "VERY SEXY NIGHT", "WOMAN", 644], [296, "V. SECRET", "BARE", "WOMAN", 628],
+        [297, "V. SECRET", "BARE VANILLA", "WOMAN", 477], [298, "V. SECRET", "TEASE CREME", "WOMAN", 794],
+        [299, "V. SECRET", "MIDNIGHT BLOOM", "WOMAN", 624], [300, "V. & ROLF", "SPICEBOMB", "MAN", 723],
+        [301, "V. & ROLF", "SPICEBOMB EXT.", "MAN", 754], [302, "V. & ROLF", "FLOWERBOMB", "WOMAN", 760],
+        [303, "XERJOFF", "MEFISTO", "MAN", 896], [304, "XERJOFF", "MORE THAN WORDS", "UNISEX", 1148],
+        [305, "XERJOFF", "NAXOS", "UNISEX", 700], [306, "XERJOFF", "ALEXANDRIA II", "UNISEX", 826],
+        [307, "XERJOFF", "APOLLONIA", "UNISEX", 770], [308, "XERJOFF", "TORINO 21", "UNISEX", 628],
+        [309, "XERJOFF", "CASAMORATI LIRA", "WOMAN", 590], [310, "XERJOFF", "UDEN", "MAN", 1134],
+        [311, "YSL", "LIBRE", "WOMAN", 823], [312, "YSL", "LIBRE INTENSE", "WOMAN", 672],
+        [313, "YSL", "MYSELF", "MAN", 754], [314, "YSL", "Y EDP", "MAN", 896],
+        [315, "YSL", "BLACK OPIUM", "WOMAN", 660], [316, "YSL", "SUPREME BOUQUET", "UNISEX", 770],
+        [317, "YSL", "L'HOMME", "MAN", 743], [318, "YSL", "LA NUIT", "MAN", 964],
+        [319, "YSL", "MANIFESTO", "WOMAN", 726], [320, "YSL", "MON PARIS", "WOMAN", 964],
+        [321, "YVES ROCHER", "EVIDENCE", "WOMAN", 675], [322, "Z. & ROZEN", "VANILLA BLEND", "UNISEX", 692],
+        [323, "Z. & ROZEN", "BLACK PEPPER", "UNISEX", 879]
+    ];
+
+    function renderTable(data) {
+        const body = document.getElementById('listBody');
+        body.innerHTML = '';
+        data.forEach(p => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td class="${p[3].toLowerCase()}">${p[3]}</td><td class="price">${p[4]} TL</td>`;
+            body.appendChild(row);
+        });
+    }
+
+    function filterData(gender) {
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        if(gender === 'all') renderTable(perfumes);
+        else renderTable(perfumes.filter(p => p[3].toLowerCase() === gender));
+    }
+
+    window.onload = () => renderTable(perfumes);
+</script>
+</body>
+</html>
